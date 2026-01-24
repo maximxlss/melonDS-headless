@@ -76,7 +76,7 @@ int main(int argc, char** argv)
         PrintUsage(argv[0]);
         return 0;
     }
-    if (opts.romPath.empty() || opts.screenshotPath.empty())
+    if (opts.romPath.empty())
     {
         PrintUsage(argv[0]);
         return 1;
@@ -138,22 +138,35 @@ int main(int argc, char** argv)
             break;
     }
     bool screenshotFailed = false;
-    const int front = nds->GPU.FrontBuffer;
-    const auto* top = nds->GPU.Framebuffer[front][0].get();
-    const auto* bottom = nds->GPU.Framebuffer[front][1].get();
-    if (!top || !bottom)
+    bool screenshotSaved = false;
+    if (!opts.screenshotPath.empty())
     {
-        std::fprintf(stderr, "Screenshot failed: framebuffer not ready\n");
-        screenshotFailed = true;
-    }
-    else if (!WritePNG(opts.screenshotPath, top, bottom, 256, 192))
-    {
-        std::fprintf(stderr, "Screenshot failed: could not write %s\n", opts.screenshotPath.c_str());
-        screenshotFailed = true;
+        const int front = nds->GPU.FrontBuffer;
+        const auto* top = nds->GPU.Framebuffer[front][0].get();
+        const auto* bottom = nds->GPU.Framebuffer[front][1].get();
+        if (!top || !bottom)
+        {
+            std::fprintf(stderr, "Screenshot failed: framebuffer not ready\n");
+            screenshotFailed = true;
+        }
+        else if (!WritePNG(opts.screenshotPath, top, bottom, 256, 192))
+        {
+            std::fprintf(stderr, "Screenshot failed: could not write %s\n", opts.screenshotPath.c_str());
+            screenshotFailed = true;
+        }
+        else
+        {
+            screenshotSaved = true;
+        }
     }
 
     if (frameLimitReached)
         nds->Stop(melonDS::Platform::StopReason::External);
+
+    if (screenshotSaved)
+        std::fprintf(stderr, "Saved screenshot: %s\n", opts.screenshotPath.c_str());
+    else if (opts.screenshotPath.empty())
+        std::fprintf(stderr, "No screenshot path provided; skipping capture\n");
 
     int exitCode = ExitCodeForStopReason(melonDS::Platform::Headless_StopReason());
     if (exitCode == kExitOk && screenshotFailed)

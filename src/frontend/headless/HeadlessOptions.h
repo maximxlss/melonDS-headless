@@ -40,7 +40,7 @@ inline bool ParseU64(const char* value, std::uint64_t& out)
 inline void PrintUsage(const char* exe)
 {
     std::printf(
-        "Usage: %s [options] <rom.nds> <screenshot.png>\n"
+        "Usage: %s [options] <rom.nds> [screenshot.png]\n"
         "\n"
         "Options:\n"
         "  --frames <n>       Run for n frames before taking screenshot/exit (default: 60, 0 = unlimited)\n"
